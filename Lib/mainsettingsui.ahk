@@ -25,8 +25,3 @@ Webhookbttn.OnEvent("Click", (*) => WebhookSettingsUI())
 OpenSettings() {
     MainSettings.Show("w360 h165")
 }
-
-
-
-
-

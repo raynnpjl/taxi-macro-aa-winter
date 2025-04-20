@@ -74,7 +74,6 @@ BetterClick(x, y, LR := "Left") { ; credits to yuh for this, lowk a life saver
 GoToRaids() {
     loop {
         ; go to xmas map
-        
         if (ok:=FindText(&X, &Y, 10, 70, 350, 205, 0, 0, LoadingScreen)) {
             AddToLog("Found LoadingScreen, stopping loop")
             break
@@ -149,21 +148,56 @@ IsPlacementSuccessful() {
 }
 
 TryPlacingUnits() {
-    global startX, startY, endX, endY, step, successfulCoordinates
+    global startX, startY, startY2, endX, endY, endY2, step, successfulCoordinates
     successfulCoordinates := [] ; Reset successfulCoordinates for each run
+    tempPlacementPriorityArray := [] ; No need for global, only using locally
+    placementPriorityArray := [] ; No need for global, only using locally
 
     x := startX ; Initialize x only once
     y := startY ; Initialize y only once
     y2 := startY2 ; Initialize y2 only once
 
-    ; Iterate through all slots (1 to 6)
+    ;Sort by placement_priority
+    SortByPlacementPriority(a) {
+        loop {
+            swapped := 0
+            loop a.Length - 1
+                if (a[A_Index].placement_priority > a[A_Index + 1].placement_priority) {
+                    a.InsertAt(A_Index, a[A_Index + 1])
+                    a.RemoveAt(A_Index + 2)
+                    swapped := 1
+                }
+        } until !swapped
+    }
+
+
+    ; Iterate through all slots (1 to 6) for placement priority
     for slotNum in [1, 2, 3, 4, 5, 6] {
+        placementpriority := "PlacementPriority" slotNum
+        placementpriority := %placementpriority%
+        placementpriority := placementpriority.Text
+        tempPlacementPriorityArray.push( {unit: slotNum, placement_priority: placementpriority} )
+    }
+
+    SortByPlacementPriority(tempPlacementPriorityArray)
+
+    for ele in tempPlacementPriorityArray {
+        placementPriorityArray.push(ele.unit)
+    }
+
+    alternatingPlacement := 0
+
+    ; Iterate through all slots (1 to 6)
+    for slotNum in placementPriorityArray {
         enabled := "Enabled" slotNum
         enabled := %enabled%
         enabled := enabled.Value
         placements := "Placement" slotNum
         placements := %placements%
         placements := placements.Text
+        unitpriority := "UnitPriority" slotNum
+        unitpriority:= %unitpriority%
+        unitpriority := unitpriority.Text
         
         ; Skip if the slot is not enabled
         if !(enabled = 1) {
@@ -173,7 +207,6 @@ TryPlacingUnits() {
         AddToLog("Starting placements for Slot " slotNum " with " placements " placements.")
         
         placementCount := 0
-        alternatingPlacement := 0
 
         ; Continue placement for the current slot
         while (placementCount < placements && y >= endY && y2 <= endY2) { ; Rows
@@ -181,16 +214,16 @@ TryPlacingUnits() {
                 if (ok:=FindText(&cardX, &cardY, 325, 205, 630, 270, 0, 0, pick_card)) {
                     cardSelector()
                 }
-                if (alternatingPlacement == 0) {
+                if (alternatingPlacement = 0) {
                     if PlaceUnit(x, y2, slotNum) {
                     placementCount++
-                    successfulCoordinates.Push({ x: x, y: y2 }) ; Track successful placements
+                    successfulCoordinates.Push({ unit_priority: unitpriority, x: x, y: y2 }) ; Track successful placements
                     }
                 }
-                if (alternatingPlacement == 1) {
+                if (alternatingPlacement = 1) {
                     if PlaceUnit(x, y, slotNum) {
                     placementCount++
-                    successfulCoordinates.Push({ x: x, y: y }) ; Track successful placements
+                    successfulCoordinates.Push({ unit_priority: unitpriority, x: x, y: y }) ; Track successful placements
                     }
                 }
                 BetterClick(348, 391) ; next
@@ -204,7 +237,7 @@ TryPlacingUnits() {
             }
             if x > endX {
                 x := startX ; Reset x for the next row
-                if (Mod(alternatingPlacement, 2) == 0) {
+                if (alternatingPlacement = 0) {
                     y2 += (step + 25) ; Move to the next row, upwards
                     alternatingPlacement += 1
                 }
@@ -226,12 +259,23 @@ TryPlacingUnits() {
     AddToLog("All slot placements and upgrades completed.")
 }
 
-
-
-
-
 UpgradeUnits() {
     global successfulCoordinates
+
+    ;Sort by unit_priority
+    SortByUnitPriority(a) {
+        loop {
+            swapped := 0
+            loop a.Length - 1
+                if (a[A_Index].unit_priority > a[A_Index + 1].unit_priority) {
+                    a.InsertAt(A_Index, a[A_Index + 1])
+                    a.RemoveAt(A_Index + 2)
+                    swapped := 1
+                }
+        } until !swapped
+    }
+
+    SortByUnitPriority(successfulCoordinates)
 
     AddToLog("Beginning unit upgrades.")
 
@@ -239,6 +283,35 @@ UpgradeUnits() {
         for index, coord in successfulCoordinates {
             if (ok:=FindText(&cardX, &cardY, 325, 205, 630, 270, 0, 0, pick_card)) {
                 cardSelector()
+            }
+
+            if (coord.unit_priority = 0) {
+                loop {
+                    if (ok:=FindText(&cardX, &cardY, 325, 205, 630, 270, 0, 0, pick_card)) {
+                        cardSelector()
+                    }
+                    
+                    UpgradeUnit(coord.x, coord.y)
+
+                    if ShouldStopUpgrading() {
+                        AddToLog("Found return to lobby, going back.")
+                        successfulCoordinates := []
+                        return LobbyLoop()
+                    }
+
+                    if IsMaxUpgrade() {
+                        AddToLog("Max upgrade reached for: X" coord.x " Y" coord.y)
+                        successfulCoordinates.RemoveAt(index) ; Remove the coordinate
+                        BetterClick(326, 180)
+                        break ; end loop
+                    }
+
+                    sleep(200)
+
+                    BetterClick(348, 391) ; next
+                    BetterClick(565, 563) ; move mouse
+                }
+                continue ; Skip to the next coordinate
             }
 
             UpgradeUnit(coord.x, coord.y)
@@ -449,6 +522,10 @@ AntiCaptcha() {
         captcha := StrReplace(ocrResult.Text, " ")  ; Remove spaces
         if (StrLen(captcha) <= 1 || RegExMatch(captcha, "[A-Za-z]")) {
             AddToLog("invalid captcha retrying")
+            sleep 100
+            BetterClick(585, 190)
+            sleep 50
+            BetterClick(585, 190)
             return
         }
 
@@ -580,10 +657,10 @@ cardSelector() {
     regen_card := {card_name: "enemy regen", card_pic: regen, card_priority: newCardOrder[3]}
     speed_card := {card_name: "speed buff", card_pic: shield, card_priority: newCardOrder[4]}
     explosive_death_card := {card_name: "explosive death", card_pic: explosive_death, card_priority: newCardOrder[5]}
-    range_card := {card_name: "range buff", card_pic: speed, card_priority: newCardOrder[6]}
-    attack_card := {card_name: "attack buff", card_pic: range, card_priority: newCardOrder[7]}
-    cooldown_card := {card_name: "cooldown buff", card_pic: attack, card_priority: newCardOrder[8]}
-    shield_card := {card_name: "enemy shield", card_pic: cooldown, card_priority: newCardOrder[9]}
+    range_card := {card_name: "range buff", card_pic: range, card_priority: newCardOrder[6]}
+    attack_card := {card_name: "attack buff", card_pic: attack, card_priority: newCardOrder[7]}
+    cooldown_card := {card_name: "cooldown buff", card_pic: cooldown, card_priority: newCardOrder[8]}
+    shield_card := {card_name: "enemy shield", card_pic: shield, card_priority: newCardOrder[9]}
     yen_card := {card_name: "extra yen", card_pic: yen, card_priority: newCardOrder[10]}
 
     arrayOfCardObj.push(new_path_card)
@@ -619,14 +696,13 @@ cardSelector() {
 
     if (candymultiplier = 1) {
         AddToLog("Detected prioritise candy multiplier enabled")
-        if (ok:=FindText(&cardX, &cardY, 1, 1, 800, 600, 0, 0, candy400)) {
+        if (ok:=FindText(&cardX, &cardY, 1, 1, 800, 600, 0, 0, new_path)) {
             FindText().Click(cardX, cardY, 0)
             MouseMove 0, 10, 2, "R"
             Click 2
             sleep 1000
-            MouseMove 0, 35, 2, "R"
+            MouseMove 0, 120, 2, "R"
             Click 2
-            AddToLog("Picked +400% candy multiplier")
             AddToLog("Succesfully picked card")
             sleep 5000
         }
@@ -637,7 +713,6 @@ cardSelector() {
             sleep 1000
             MouseMove 0, 35, 2, "R"
             Click 2
-            AddToLog("Picked +150% candy multiplier")
             AddToLog("Succesfully picked card")
             sleep 5000
         }
@@ -648,7 +723,6 @@ cardSelector() {
             sleep 1000
             MouseMove 0, 45, 2, "R"
             Click 2
-            AddToLog("Picked +70% candy multiplier")
             AddToLog("Succesfully picked card")
             sleep 5000
         }
@@ -659,7 +733,6 @@ cardSelector() {
             sleep 1000
             MouseMove 0, 45, 2, "R"
             Click 2
-            AddToLog("Picked +30% candy multiplier")
             AddToLog("Succesfully picked card")
             sleep 5000
         }

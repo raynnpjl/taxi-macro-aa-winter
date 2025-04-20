@@ -57,7 +57,7 @@ MainGUI.Add("Picture", "x820 y-20 w90 h90 +BackgroundTrans cffffff", TaxiImage)
 MainGUI.AddProgress("c0x7e4141 x8 y27 h602 w800", 100) ; box behind roblox, credits to yuh for this idea
 WinSetTransColor("0x7e4141 255", MainGUI)
 
-userOption := MainGUI.Add("DropDownList", "x835 y50 cffffff Choose1", ["Unit Setup", "Card Selector"])
+userOption := MainGUI.Add("DropDownList", "x835 y50 cffffff Choose1", ["Unit Setup", "Unit Priority", "Card Selector"])
 userOption.OnEvent("Change", (*) => UpdateGroupBox())
 
 ; Add controls for Unit Setup
@@ -81,6 +81,33 @@ placement3text := MainGUI.Add("Text", "x940 y140 h60 cffffff +BackgroundTrans", 
 placement4text := MainGUI.Add("Text", "x940 y170 h60 cffffff +BackgroundTrans", "Placements: ")
 placement5text := MainGUI.Add("Text", "x940 y200 h60 cffffff +BackgroundTrans", "Placements: ")
 placement6text := MainGUI.Add("Text", "x940 y230 h60 cffffff +BackgroundTrans", "Placements: ")
+
+; Add controls for Unit priority
+unitpriority1text := MainGUI.Add("Text", "x840 y85 cffffff +BackgroundTrans", "Slot1(Upg): ")
+unitpriority2text := MainGUI.Add("Text", "x840 y115 cffffff +BackgroundTrans", "Slot2(Upg): ")
+unitpriority3text := MainGUI.Add("Text", "x840 y145 cffffff +BackgroundTrans", "Slot3(Upg): ")
+unitpriority4text := MainGUI.Add("Text", "x840 y175 cffffff +BackgroundTrans", "Slot4(Upg): ")
+unitpriority5text := MainGUI.Add("Text", "x840 y205 cffffff +BackgroundTrans", "Slot5(Upg): ")
+unitpriority6text := MainGUI.Add("Text", "x840 y235 cffffff +BackgroundTrans", "Slot6(Upg): ")
+placementpriority1text := MainGUI.Add("Text", "x960 y85 cffffff +BackgroundTrans", "Slot1(P): ")
+placementpriority2text := MainGUI.Add("Text", "x960 y115 cffffff +BackgroundTrans", "Slot2(P): ")
+placementpriority3text := MainGUI.Add("Text", "x960 y145 cffffff +BackgroundTrans", "Slot3(P): ")
+placementpriority4text := MainGUI.Add("Text", "x960 y175 cffffff +BackgroundTrans", "Slot4(P): ")
+placementpriority5text := MainGUI.Add("Text", "x960 y205 cffffff +BackgroundTrans", "Slot5(P): ")
+placementpriority6text := MainGUI.Add("Text", "x960 y235 cffffff +BackgroundTrans", "Slot6(P): ")
+
+unitpriority1 := MainGUI.Add("DropDownList", "x910 y80  w40 cffffff Choose1", [0, 1, 2, 3, 4, 5, 6])
+unitpriority2 := MainGUI.Add("DropDownList", "x910 y110 w40 cffffff Choose2", [0, 1, 2, 3, 4, 5, 6])
+unitpriority3 := MainGUI.Add("DropDownList", "x910 y140 w40 cffffff Choose3", [0, 1, 2, 3, 4, 5, 6])
+unitpriority4 := MainGUI.Add("DropDownList", "x910 y170 w40 cffffff Choose4", [0, 1, 2, 3, 4, 5, 6])
+unitpriority5 := MainGUI.Add("DropDownList", "x910 y200 w40 cffffff Choose5", [0, 1, 2, 3, 4, 5, 6])
+unitpriority6 := MainGUI.Add("DropDownList", "x910 y230 w40 cffffff Choose6", [0, 1, 2, 3, 4, 5, 6])
+placementpriority1 := MainGUI.Add("DropDownList", "x1020 y80 w40 cffffff Choose1", [1, 2, 3, 4, 5, 6])
+placementpriority2 := MainGUI.Add("DropDownList", "x1020 y110 w40 cffffff Choose2", [1, 2, 3, 4, 5, 6])
+placementpriority3 := MainGUI.Add("DropDownList", "x1020 y140 w40 cffffff Choose3", [1, 2, 3, 4, 5, 6])
+placementpriority4 := MainGUI.Add("DropDownList", "x1020 y170 w40 cffffff Choose4", [1, 2, 3, 4, 5, 6])
+placementpriority5 := MainGUI.Add("DropDownList", "x1020 y200 w40 cffffff Choose5", [1, 2, 3, 4, 5, 6])
+placementpriority6 := MainGUI.Add("DropDownList", "x1020 y230 w40 cffffff Choose6", [1, 2, 3, 4, 5, 6])
 
 ; Add controls for Card Selector
 candymultiplier1 := MainGUI.add("Checkbox", "x840 y80 cffffff", "Prioritise Candy Multiplier")
@@ -129,6 +156,35 @@ card8text.Visible := false
 card9text.Visible := false
 card10text.Visible := false
 
+; Inititally hide Unit Priority controls
+unitpriority1text.Visible := false
+unitpriority2text.Visible := false
+unitpriority3text.Visible := false
+unitpriority4text.Visible := false
+unitpriority5text.Visible := false
+unitpriority6text.Visible := false
+
+placementpriority1text.Visible := false
+placementpriority2text.Visible := false
+placementpriority3text.Visible := false
+placementpriority4text.Visible := false
+placementpriority5text.Visible := false
+placementpriority6text.Visible := false
+
+unitpriority1.Visible := false
+unitpriority2.Visible := false
+unitpriority3.Visible := false
+unitpriority4.Visible := false
+unitpriority5.Visible := false
+unitpriority6.Visible := false
+
+placementpriority1.Visible := false
+placementpriority2.Visible := false
+placementpriority3.Visible := false
+placementpriority4.Visible := false
+placementpriority5.Visible := false
+placementpriority6.Visible := false
+
 ; Initially show Unit Setup controls
 enabled1.Visible := true
 enabled2.Visible := true
@@ -153,7 +209,9 @@ UpdateGroupBox() {
     global userOption
     global enabled1, enabled2, enabled3, enabled4, enabled5, enabled6
     global placement1, placement2, placement3, placement4, placement5, placement6
-    global card1, card2, card3, card4, card5, card6, card7, card8, card9, card10
+    global candymultiplier1, card1, card2, card3, card4, card5, card6, card7, card8, card9, card10
+    global unitpriority1, unitpriority2, unitpriority3, unitpriority4, unitpriority5, unitpriority6
+    global placementpriority1, placementpriority2, placementpriority3, placementpriority4, placementpriority5, placementpriority6
 
     selectedOption := userOption.Text
 
@@ -202,6 +260,36 @@ UpdateGroupBox() {
         card9text.Visible := false
         card10text.Visible := false
 
+        ; Hide Unit Priority controls
+        unitpriority1text.Visible := false
+        unitpriority2text.Visible := false
+        unitpriority3text.Visible := false
+        unitpriority4text.Visible := false
+        unitpriority5text.Visible := false
+        unitpriority6text.Visible := false
+
+        placementpriority1text.Visible := false
+        placementpriority2text.Visible := false
+        placementpriority3text.Visible := false
+        placementpriority4text.Visible := false
+        placementpriority5text.Visible := false
+        placementpriority6text.Visible := false
+
+        unitpriority1.Visible := false
+        unitpriority2.Visible := false
+        unitpriority3.Visible := false
+        unitpriority4.Visible := false
+        unitpriority5.Visible := false
+        unitpriority6.Visible := false
+        unitpriority6.Visible := false
+
+        placementpriority1.Visible := false
+        placementpriority2.Visible := false
+        placementpriority3.Visible := false
+        placementpriority4.Visible := false
+        placementpriority5.Visible := false
+        placementpriority6.Visible := false
+
     } else if (selectedOption = "Card Selector") {
         ; Hide Unit Setup controls
         enabled1.Visible := false
@@ -246,6 +334,111 @@ UpdateGroupBox() {
         card8text.Visible := true
         card9text.Visible := true
         card10text.Visible := true
+
+        ; Hide Unit Priority controls
+        unitpriority1text.Visible := false
+        unitpriority2text.Visible := false
+        unitpriority3text.Visible := false
+        unitpriority4text.Visible := false
+        unitpriority5text.Visible := false
+        unitpriority6text.Visible := false
+
+        placementpriority1text.Visible := false
+        placementpriority2text.Visible := false
+        placementpriority3text.Visible := false
+        placementpriority4text.Visible := false
+        placementpriority5text.Visible := false
+        placementpriority6text.Visible := false
+
+        unitpriority1.Visible := false
+        unitpriority2.Visible := false
+        unitpriority3.Visible := false
+        unitpriority4.Visible := false
+        unitpriority5.Visible := false
+        unitpriority6.Visible := false
+        unitpriority6.Visible := false
+
+        placementpriority1.Visible := false
+        placementpriority2.Visible := false
+        placementpriority3.Visible := false
+        placementpriority4.Visible := false
+        placementpriority5.Visible := false
+        placementpriority6.Visible := false
+
+    } else if (selectedOption = "Unit Priority") {
+        ; Hide Unit Setup controls
+        enabled1.Visible := false
+        enabled2.Visible := false
+        enabled3.Visible := false
+        enabled4.Visible := false
+        enabled5.Visible := false
+        enabled6.Visible := false
+        placement1.Visible := false
+        placement2.Visible := false
+        placement3.Visible := false
+        placement4.Visible := false
+        placement5.Visible := false
+        placement6.Visible := false
+        placement1text.Visible := false
+        placement2text.Visible := false
+        placement3text.Visible := false
+        placement4text.Visible := false
+        placement5text.Visible := false
+        placement6text.Visible := false
+
+
+        ; Hide Card Selector controls
+        candymultiplier1.Visible := false
+        card1.Visible := false
+        card2.Visible := false
+        card3.Visible := false
+        card4.Visible := false
+        card5.Visible := false
+        card6.Visible := false
+        card7.Visible := false
+        card8.Visible := false
+        card9.Visible := false
+        card10.Visible := false
+        card1text.Visible := false
+        card2text.Visible := false
+        card3text.Visible := false
+        card4text.Visible := false
+        card5text.Visible := false
+        card6text.Visible := false
+        card7text.Visible := false
+        card8text.Visible := false
+        card9text.Visible := false
+        card10text.Visible := false
+
+        ; Show Unit Priority controls
+        unitpriority1text.Visible := true
+        unitpriority2text.Visible := true
+        unitpriority3text.Visible := true
+        unitpriority4text.Visible := true
+        unitpriority5text.Visible := true
+        unitpriority6text.Visible := true
+
+        placementpriority1text.Visible := true
+        placementpriority2text.Visible := true
+        placementpriority3text.Visible := true
+        placementpriority4text.Visible := true
+        placementpriority5text.Visible := true
+        placementpriority6text.Visible := true
+
+        unitpriority1.Visible := true
+        unitpriority2.Visible := true
+        unitpriority3.Visible := true
+        unitpriority4.Visible := true
+        unitpriority5.Visible := true
+        unitpriority6.Visible := true
+        unitpriority6.Visible := true
+
+        placementpriority1.Visible := true
+        placementpriority2.Visible := true
+        placementpriority3.Visible := true
+        placementpriority4.Visible := true
+        placementpriority5.Visible := true
+        placementpriority6.Visible := true
     }
 }
 
@@ -326,6 +519,20 @@ SaveConfig() {
     File.WriteLine("Card9=" card9.Text)
     File.WriteLine("Card10=" card10.Text)
 
+    File.WriteLine("UnitPriority1=" unitpriority1.Text)
+    File.WriteLine("UnitPriority2=" unitpriority2.Text)
+    File.WriteLine("UnitPriority3=" unitpriority3.Text)
+    File.WriteLine("UnitPriority4=" unitpriority4.Text)
+    File.WriteLine("UnitPriority5=" unitpriority5.Text)
+    File.WriteLine("UnitPriority6=" unitpriority6.Text)
+
+    File.WriteLine("PlacementPriority1=" placementpriority1.Text)
+    File.WriteLine("PlacementPriority2=" placementpriority2.Text)
+    File.WriteLine("PlacementPriority3=" placementpriority3.Text)
+    File.WriteLine("PlacementPriority4=" placementpriority4.Text)
+    File.WriteLine("PlacementPriority5=" placementpriority5.Text)
+    File.WriteLine("PlacementPriority6=" placementpriority6.Text)
+
     File.Close()
     AddToLog("Configuration saved successfully.")
 }
@@ -333,7 +540,9 @@ SaveConfig() {
 LoadConfig() {
     global enabled1, enabled2, enabled3, enabled4, enabled5, enabled6
     global placement1, placement2, placement3, placement4, placement5, placement6
-    global card1, card2, card3, card4, card5, card6, card7, card8, card9, card10
+    global candymultiplier1, card1, card2, card3, card4, card5, card6, card7, card8, card9, card10
+    global unitpriority1, unitpriority2, unitpriority3, unitpriority4, unitpriority5, unitpriority6
+    global placementpriority1, placementpriority2, placementpriority3, placementpriority4, placementpriority5, placementpriority6
 
     if !FileExist("Lib\Settings\config.txt") {
         AddToLog("No configuration file found. Default settings will be used.")
@@ -377,6 +586,20 @@ LoadConfig() {
             candygui := "candymultiplier" slot
             candygui := %candygui%
             candygui.Value := value ; Set dropdown
+        }
+        if RegExMatch(line, "UnitPriority(\d+)=(\d+)", &match) {
+            slot := match.1
+            value := match.2
+            unitprioritygui := "UnitPriority" slot
+            unitprioritygui := %unitprioritygui%
+            unitprioritygui.Text := value ; Set dropdown
+        }
+        if RegExMatch(line, "PlacementPriority(\d+)=(\d+)", &match) {
+            slot := match.1
+            value := match.2
+            placementprioritygui := "PlacementPriority" Slot
+            placementprioritygui := %placementprioritygui%
+            placementprioritygui.Text := value ; Set dropdown
         }
         
     }
