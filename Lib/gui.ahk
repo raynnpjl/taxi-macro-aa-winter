@@ -1,6 +1,7 @@
 #Requires AutoHotkey v2
 #Include %A_ScriptDir%\Lib\guidegui.ahk
 #Include %A_ScriptDir%\Lib\mainsettingsui.ahk
+#Include %A_ScriptDir%\Lib\webhooksettings.ahk
 
 GemsEarned := 0
 ShibuyaFood := 0
@@ -31,6 +32,9 @@ CloseAppButton.OnEvent("Click", (*) => ExitApp())
 
 GuideBttn := MainGui.Add("Button", "x830 y632 w238 cffffff +BackgroundTrans +Center", "How to use?")
 GuideBttn.OnEvent("Click", (*) => OpenGuide())
+
+SettingsButton := MainGUI.Add("Button", "x710 y633 cffffff Choose1 +Center", "Open Settings")
+SettingsButton.OnEvent("Click", (*) => OpenSettings())
 
 drawOutline(GuiName, X, Y, W, H, Color1 := "White", Color2 := "White", Thickness := 1)
 {	
@@ -267,7 +271,12 @@ MainGUI.Show("x27 y15 w1100 h665")
 
 AddToLog(text) {
     global lastlog
+    SendActivityLogsStatus := FileRead(SendActivityLogsFile, "UTF-8")
     ActivityLog.Value := text "`n" ActivityLog.Value
+    if FileExist(SendActivityLogsFile) && (SendActivityLogsStatus = "1") {
+        lastlog := text
+        WebhookLog()
+    } 
 }
 
 MinimizeGUI() {
