@@ -1,7 +1,6 @@
 #Include %A_ScriptDir%\Lib\FindText.ahk
 
 pick_card:="|<>*135$26.zzzzzzzzzzzzzzzzzzz1zzz03zzU0Tzk03zs00Ty3s7z0z0zkTsDw7y3y1zUzUTsDs7y3y1zUzUTsDs7y3z1zUzkTkDw3w7zUS1zs00zz00Dzs0DzzU7zzzzzzzzzzzzzzzzzzzzzzy"
-;if (ok:=FindText(&X, &Y, 391-150000, 249-150000, 391+150000, 249+150000, 0, 0, pick_card))
 
 new_path:="|<>*135$100.zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz7zy7szzzzzy0DzztwDzsTXzzzzzs0Tzz3kzzUyDzzzzzU0zzwD3zy1szzzzzy73zzkwDzs3XkCCCDsS7WC0E3zUCC00kszVsM0E107y0Mk0V13y7101040Ds0X3W44Ds0A060k0TV0AC801zU0ksQD3Vy60k0k07y077VkwC7sQ30700zs1wA73ksTVsADy23zVzk0Q73Vy7Uk0s8Dy7z01sAC7sT3U3llzsTy07UlsTXyD0T77zXzy8z37nzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzs"
 
@@ -21,5 +20,12 @@ cooldown:="|<>*135$93.zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzyTzDzz
 
 shield:="|<>*135$43.zzzzzzzzzzzzzzzzDnznzT1btztz70nxzwzXatzzSTllw3C3D0s61a1b0T1AGAHaDsa90NX6AH4nws3UNWM6A1sQtC370zzzzzzzzzzzzzzw"
 
-
 yen:="|<>*135$42.zzzzzzzzzzzzzzzzzzzzzyzrzzzzwTVzzzzsDVzzzzwD1zzzzy73zzzzy270wEzz060A0TzUA0A0DzUQCA07zkQCAC7zkw0AC7zkw0QC7zkwDwC7zkw0AC7zky0AS7zsz0QTDzzzzzzzzzzzzzzU"
+
+candy30:="|<>*99$29.zzzzzzzzzzzzzzzzzzzzwAALzs02jxs6EzklAsT0MNoTY27+zQAClzzzzzzzzzzzzzzzzzzzw"
+
+candy70:="|<>*102$28.zzzzzzzzzzzzzzz0VWzy40fyyH8TknAwS3AncyNsQfvbVqDzzzzzzzzzzzzzy"
+
+candy150:="|<>*102$32.zzzzzzzzzzzzzzzzzzzzzzzzzzzz48MjzU40fzM1AVzVU3D7kNknczC0VmDrYMRXzzzzzzzzzzzzzzzzU"
+
+candy400:="|<>*101$35.zzzzzzzzzzzzzzzzzzzzzzxzwYAALzt002jxa66Ezk0AAsT00MNoTbm67+zTYAClzzzzzzzzzzzzzzzzzy"

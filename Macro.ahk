@@ -71,27 +71,31 @@ BetterClick(x, y, LR := "Left") { ; credits to yuh for this, lowk a life saver
 }
 
 GoToRaids() {
-    ; go to xmas map
-    SendInput ("{Tab}")
-    BetterClick(89, 302)
-    Sleep 2000
-    SendInput ("{a up}")  
-    ; go to teleporter
-    Sleep 100  
-    SendInput ("{a down}")
-    Sleep 6000
-    SendInput ("{a up}")
-    KeyWait "a" ; Wait for "w" to be fully processed
-    ;sacred planet act 4
-    Sleep 1200
-    BetterClick(469, 340) ; play
-    Sleep 2000   
     loop {
-        AddToLog("Logged loop")
-        AntiCaptcha()
-        if (ok:=FindText(&X, &Y, 97-150000, 184-150000, 97+150000, 184+150000, 0, 0, LoadingScreen)) {
+        ; go to xmas map
+        if (ok:=FindText(&X, &Y, 10, 70, 350, 205, 0, 0, LoadingScreen)) {
+            AddToLog("Found LoadingScreen, stopping loop")
             break
         }
+        if (ok:=FindText(&X, &Y, 326, 60, 547, 173, 0, 0, VoteStart)) {
+            AddToLog("Found VoteStart, stopping loop")
+            break
+        }
+        SendInput ("{Tab}")
+        BetterClick(89, 302)
+        Sleep 2000
+        SendInput ("{a up}")  
+        ; go to teleporter
+        Sleep 100  
+        SendInput ("{a down}")
+        Sleep 6000
+        SendInput ("{a up}")
+        KeyWait "a" ; Wait for "w" to be fully processed
+        ;sacred planet act 4
+        Sleep 1200
+        BetterClick(469, 340) ; play
+        Sleep 2000
+        AntiCaptcha()
     }
     LoadedLoop()
     StartedLoop()
@@ -103,6 +107,7 @@ GoToRaids() {
 F3:: {
     Reload()
 }
+
 ; Define the rectangle coordinates
 global startX := 100, startY := 500, endX := 700, endY := 350
 global startY2 := 200, endY2:= 350
@@ -166,9 +171,8 @@ TryPlacingUnits() {
         ; Continue placement for the current slot
         while (placementCount < placements && y >= endY && y2 <= endY2) { ; Rows
             while (placementCount < placements && x <= endX) { ; Columns
-                if (ok:=FindText(&cardX, &cardY, 391-150000, 249-150000, 391+150000, 249+150000, 0, 0, pick_card)) {
+                if (ok:=FindText(&cardX, &cardY, 325, 205, 630, 270, 0, 0, pick_card)) {
                     cardSelector()
-                    AddToLog("Succesfully picked card")
                 }
                 if (alternatingPlacement == 0) {
                     if PlaceUnit(x, y2, slotNum) {
@@ -226,9 +230,8 @@ UpgradeUnits() {
 
     while true { ; Infinite loop to ensure continuous checking
         for index, coord in successfulCoordinates {
-            if (ok:=FindText(&cardX, &cardY, 391-150000, 249-150000, 391+150000, 249+150000, 0, 0, pick_card)) {
+            if (ok:=FindText(&cardX, &cardY, 325, 205, 630, 270, 0, 0, pick_card)) {
                 cardSelector()
-                AddToLog("Succesfully picked card")
             }
 
             UpgradeUnit(coord.x, coord.y)
@@ -252,9 +255,8 @@ UpgradeUnits() {
         }
 
         ;After unit all maxed, continue checking for select card
-        if (ok:=FindText(&cardX, &cardY, 391-150000, 249-150000, 391+150000, 249+150000, 0, 0, pick_card)) {
+        if (ok:=FindText(&cardX, &cardY, 325, 205, 630, 270, 0, 0, pick_card)) {
             cardSelector()
-            AddToLog("Succesfully picked card")
         }
 
         ; If all units are maxed, still check for stopping condition
@@ -426,8 +428,6 @@ Positioning() {
 }
 
 AntiCaptcha() {
-    static retryCount := 0
-    static maxRetries := 5
 
     ; Perform OCR on the defined region directly
     ocrResult := OCR.FromRect(266, 309, 603 - 266, 352 - 309)
@@ -439,13 +439,9 @@ AntiCaptcha() {
 
         ; Clean up the captcha string
         captcha := StrReplace(ocrResult.Text, " ")  ; Remove spaces
-        if (StrLen(captcha) <= 1 || RegExMatch(captcha, "[A-Z]")) {
+        if (StrLen(captcha) <= 1 || RegExMatch(captcha, "[A-Za-z]")) {
             AddToLog("invalid captcha retrying")
-            if (++retryCount > maxRetries) {
-                AddToLog("Max retries reached. Aborting.")
-                return
-            }
-            return RetryCaptcha()  ; Retry if string length <= 1 or contains uppercase/numbers
+            return
         }
 
         ; Remove special characters like /, -, and .
@@ -464,6 +460,15 @@ AntiCaptcha() {
     Sleep 1500
     BetterClick(383, 221)
     Sleep 500
+
+    sleep 6000
+     if (ok:=FindText(&X, &Y, 10, 70, 350, 205, 0, 0, LoadingScreen)) {
+        return
+    }
+    if (ok:=FindText(&X, &Y, 326, 60, 547, 173, 0, 0, VoteStart)) {
+        return
+    }
+
     AddToLog("Walking to ensure the UI pops up again if it didnt matchmake")
     loop 3 {
         SendInput ("{d up}")  
@@ -487,49 +492,8 @@ AntiCaptcha() {
         {
             AddToLog("Retrying in 30 seconds as captcha failed")
             Sleep 20000
-            return  RetryCaptcha()
         }
-    retryCount := 0
     return
-}
-
-
-RetryCaptcha() {
-    Reconnect()
-    BetterClick(586, 189) ; close captcha
-    Sleep 500
-    AddToLog("Begun retry captcha function")
-    Sleep 500
-    loop 3 {
-        SendInput ("{d up}")  
-        ; go to teleporter
-        Sleep 100  
-        SendInput ("{d down}")
-        Sleep 200
-        SendInput ("{d up}")
-        KeyWait "d" ; Wait for "d" to be fully processed
-        Sleep 100
-        SendInput ("{a up}")  
-        ; go to teleporter
-        Sleep 100  
-        SendInput ("{a down}")
-        Sleep 300
-        SendInput ("{a up}")
-        KeyWait "a" ; Wait for "a" to be fully processed
-        }
-    Sleep 2000
-    if (ok:=FindText(&X, &Y, 221, 206, 403, 355, 0, 0, MatchmakeUI)) {
-        AddToLog("Found matchmaking UI, attempting to retry now.")
-        BetterClick(402, 435)
-        Sleep 1200
-        BetterClick(469, 340) ; play
-        Sleep 2000
-        return AntiCaptcha()
-    }
-    else {
-        AddToLog("Couldn't find matchmaking UI, retrying...")
-        return RetryCaptcha()
-    }
 }
 
 TapToMove(toggle) {
@@ -579,7 +543,59 @@ OnSpawnSetup() {
 
 ;Added by @raynnpjl
 cardSelector() {
+    ;Sort by card_priority
+    SortByCardPriority(a) {
+        loop {
+            swapped := 0
+            loop a.Length - 1
+                if (a[A_Index].card_priority > a[A_Index + 1].card_priority) {
+                    a.InsertAt(A_Index, a[A_Index + 1])
+                    a.RemoveAt(A_Index + 2)
+                    swapped := 1
+                }
+        } until !swapped
+    }
+
+    ; Iterate through all slots (1 to 6)
+    newCardOrder:= []
+    arrayOfCardObj := []
+    for cardNum in [1, 2, 3, 4, 5, 6, 7, 8, 9, 10] {
+        card := "Card" cardNum
+        card := %card%
+        card := card.Text
+        
+        newCardOrder.Push(card)
+    }
+
+    new_path_card := {card_name: "new_path", card_pic: new_path, card_priority: newCardOrder[1]}
+    health_card := {card_name: "enemy health", card_pic: health, card_priority: newCardOrder[2]}
+    regen_card := {card_name: "enemy regen", card_pic: regen, card_priority: newCardOrder[3]}
+    speed_card := {card_name: "speed buff", card_pic: shield, card_priority: newCardOrder[4]}
+    explosive_death_card := {card_name: "explosive death", card_pic: explosive_death, card_priority: newCardOrder[5]}
+    range_card := {card_name: "range buff", card_pic: speed, card_priority: newCardOrder[6]}
+    attack_card := {card_name: "attack buff", card_pic: range, card_priority: newCardOrder[7]}
+    cooldown_card := {card_name: "cooldown buff", card_pic: attack, card_priority: newCardOrder[8]}
+    shield_card := {card_name: "enemy shield", card_pic: cooldown, card_priority: newCardOrder[9]}
+    yen_card := {card_name: "extra yen", card_pic: yen, card_priority: newCardOrder[10]}
+
+    arrayOfCardObj.push(new_path_card)
+    arrayOfCardObj.push(health_card)
+    arrayOfCardObj.push(regen_card)
+    arrayOfCardObj.push(speed_card)
+    arrayOfCardObj.push(explosive_death_card)
+    arrayOfCardObj.push(range_card)
+    arrayOfCardObj.push(attack_card)
+    arrayOfCardObj.push(cooldown_card)
+    arrayOfCardObj.push(shield_card)
+    arrayOfCardObj.push(yen_card)
+    SortByCardPriority(arrayOfCardObj) ;Sort in ascending order
+
+    candymultiplier := "candymultiplier" 1
+    candymultiplier := %candymultiplier%
+    candymultiplier := candymultiplier.Value
+
     AddToLog("Picking card")
+
     if (ok:=FindText(&X, &Y, 78, 182, 400, 451, 0, 0, UnitExistence)) {
         BetterClick(329, 184) ; close upg menu
         sleep 100
@@ -592,105 +608,273 @@ cardSelector() {
     sleep 100
     BetterClick(59, 572) ; Untarget Mouse
     sleep 500
-    if (ok:=FindText(&cardX, &cardY, 438-150000, 291-150000, 438+150000, 291+150000, 0, 0, new_path)) {
-        FindText().Click(cardX, cardY, 0)
-        MouseMove 0, 10, 2, "R"
-        Click 2
-        sleep 1000
-        MouseMove 0, 120, 2, "R"
-        Click 2
-        AddToLog("Picked new_path")
-        sleep 5000
+
+    if (candymultiplier = 1) {
+        AddToLog("Detected prioritise candy multiplier enabled")
+        if (ok:=FindText(&cardX, &cardY, 1, 1, 800, 600, 0, 0, candy400)) {
+            FindText().Click(cardX, cardY, 0)
+            MouseMove 0, 10, 2, "R"
+            Click 2
+            sleep 1000
+            MouseMove 0, 35, 2, "R"
+            Click 2
+            AddToLog("Picked +400% candy multiplier")
+            AddToLog("Succesfully picked card")
+            sleep 5000
+        }
+        else if (ok:=FindText(&cardX, &cardY, 1, 1, 800, 600, 0, 0, candy150)) {
+            FindText().Click(cardX, cardY, 0)
+            MouseMove 0, 10, 2, "R"
+            Click 2
+            sleep 1000
+            MouseMove 0, 35, 2, "R"
+            Click 2
+            AddToLog("Picked +150% candy multiplier")
+            AddToLog("Succesfully picked card")
+            sleep 5000
+        }
+        else if (ok:=FindText(&cardX, &cardY, 1, 1, 800, 600, 0, 0, candy70)) {
+            FindText().Click(cardX, cardY, 0)
+            MouseMove 0, 10, 2, "R"
+            Click 2
+            sleep 1000
+            MouseMove 0, 45, 2, "R"
+            Click 2
+            AddToLog("Picked +70% candy multiplier")
+            AddToLog("Succesfully picked card")
+            sleep 5000
+        }
+        else if (ok:=FindText(&cardX, &cardY, 1, 1, 800, 600, 0, 0, candy30)) {
+            FindText().Click(cardX, cardY, 0)
+            MouseMove 0, 10, 2, "R"
+            Click 2
+            sleep 1000
+            MouseMove 0, 45, 2, "R"
+            Click 2
+            AddToLog("Picked +30% candy multiplier")
+            AddToLog("Succesfully picked card")
+            sleep 5000
+        }
+        else if (ok:=FindText(&cardX, &cardY, 1, 1, 800, 600, 0, 0, arrayOfCardObj[1].card_pic)) {
+            AddToLog("No candy multiplier found")
+            FindText().Click(cardX, cardY, 0)
+            MouseMove 0, 10, 2, "R"
+            Click 2
+            sleep 1000
+            MouseMove 0, 120, 2, "R"
+            Click 2
+            AddToLog("Succesfully picked card")
+            sleep 5000
+        }
+        else if (ok:=FindText(&cardX, &cardY, 1, 1, 800, 600, 0, 0, arrayOfCardObj[2].card_pic)) {
+            AddToLog("No candy multiplier found")
+            FindText().Click(cardX, cardY, 0)
+            MouseMove 0, 10, 2, "R"
+            Click 2
+            sleep 1000
+            MouseMove 0, 120, 2, "R"
+            Click 2
+            AddToLog("Succesfully picked card")
+            sleep 5000
+        }
+        else if (ok:=FindText(&cardX, &cardY, 1, 1, 800, 600, 0, 0, arrayOfCardObj[3].card_pic)) {
+            AddToLog("No candy multiplier found")
+            FindText().Click(cardX, cardY, 0)
+            MouseMove 0, 10, 2, "R"
+            Click 2
+            sleep 1000
+            MouseMove 0, 120, 2, "R"
+            Click 2
+            AddToLog("Succesfully picked card")
+            sleep 5000
+        }
+        else if (ok:=FindText(&cardX, &cardY, 1, 1, 800, 600, 0, 0, arrayOfCardObj[4].card_pic)) {
+            AddToLog("No candy multiplier found")
+            FindText().Click(cardX, cardY, 0)
+            MouseMove 0, 10, 2, "R"
+            Click 2
+            sleep 1000
+            MouseMove 0, 120, 2, "R"
+            Click 2
+            AddToLog("Succesfully picked card")
+            sleep 5000
+        }
+        else if (ok:=FindText(&cardX, &cardY, 1, 1, 800, 600, 0, 0, arrayOfCardObj[5].card_pic)) {
+            AddToLog("No candy multiplier found")
+            FindText().Click(cardX, cardY, 0)
+            MouseMove 0, 10, 2, "R"
+            Click 2
+            sleep 1000
+            MouseMove 0, 120, 2, "R"
+            Click 2
+            AddToLog("Succesfully picked card")
+            sleep 5000
+        }
+        else if (ok:=FindText(&cardX, &cardY, 1, 1, 800, 600, 0, 0, arrayOfCardObj[6].card_pic)) {
+            AddToLog("No candy multiplier found")
+            FindText().Click(cardX, cardY, 0)
+            MouseMove 0, 10, 2, "R"
+            Click 2
+            sleep 1000
+            MouseMove 0, 120, 2, "R"
+            Click 2
+            AddToLog("Succesfully picked card")
+            sleep 5000
+        }
+        else if (ok:=FindText(&cardX, &cardY, 1, 1, 800, 600, 0, 0, arrayOfCardObj[7].card_pic)) {
+            AddToLog("No candy multiplier found")
+            FindText().Click(cardX, cardY, 0)
+            MouseMove 0, 10, 2, "R"
+            Click 2
+            sleep 1000
+            MouseMove 0, 120, 2, "R"
+            Click 2
+            AddToLog("Succesfully picked card")
+            sleep 5000
+        }
+        else if (ok:=FindText(&cardX, &cardY, 1, 1, 800, 600, 0, 0, arrayOfCardObj[8].card_pic)) {
+            AddToLog("No candy multiplier found")
+            FindText().Click(cardX, cardY, 0)
+            MouseMove 0, 10, 2, "R"
+            Click 2
+            sleep 1000
+            MouseMove 0, 120, 2, "R"
+            Click 2
+            AddToLog("Succesfully picked card")
+            sleep 5000
+        }
+        else if (ok:=FindText(&cardX, &cardY, 1, 1, 800, 600, 0, 0, arrayOfCardObj[9].card_pic)) {
+            AddToLog("No candy multiplier found")
+            FindText().Click(cardX, cardY, 0)
+            MouseMove 0, 10, 2, "R"
+            Click 2
+            sleep 1000
+            MouseMove 0, 120, 2, "R"
+            Click 2
+            AddToLog("Succesfully picked card")
+            sleep 5000
+        }
+        else if (ok:=FindText(&cardX, &cardY, 1, 1, 800, 600 0, 0, arrayOfCardObj[10].card_pic)) {
+            AddToLog("No candy multiplier found")
+            FindText().Click(cardX, cardY, 0)
+            MouseMove 0, 10, 2, "R"
+            Click 2
+            sleep 1000
+            MouseMove 0, 120, 2, "R"
+            Click 2
+            AddToLog("Succesfully picked card")
+            sleep 5000
+        }
+        else {
+            AddToLog("Failed to pick a card")
+        }
     }
-    else if (ok:=FindText(&cardX, &cardY, 438-150000, 291-150000, 438+150000, 291+150000, 0, 0, health)) {
-        FindText().Click(cardX, cardY, 0)
-        MouseMove 0, 10, 2, "R"
-        Click 2
-        sleep 1000
-        MouseMove 0, 120, 2, "R"
-        Click 2
-        AddToLog("Picked enemy health")
-        sleep 5000
-    }
-    else if (ok:=FindText(&cardX, &cardY, 438-150000, 291-150000, 438+150000, 291+150000, 0, 0, regen)) {
-        FindText().Click(cardX, cardY, 0)
-        MouseMove 0, 10, 2, "R"
-        Click 2
-        sleep 1000
-        MouseMove 0, 120, 2, "R"
-        Click 2
-        AddToLog("Picked enemy regen")
-        sleep 5000
-    }
-    else if (ok:=FindText(&cardX, &cardY, 438-150000, 291-150000, 438+150000, 291+150000, 0, 0, shield)) {
-        FindText().Click(cardX, cardY, 0)
-        MouseMove 0, 10, 2, "R"
-        Click 2
-        sleep 1000
-        MouseMove 0, 120, 2, "R"
-        Click 2
-        AddToLog("Picked enemy shield")
-        sleep 5000
-    }
-    else if (ok:=FindText(&cardX, &cardY, 438-150000, 291-150000, 438+150000, 291+150000, 0, 0, explosive_death)) {
-        FindText().Click(cardX, cardY, 0)
-        MouseMove 0, 10, 2, "R"
-        Click 2
-        sleep 1000
-        MouseMove 0, 120, 2, "R"
-        Click 2
-        AddToLog("Picked explosive_death")
-        sleep 5000
-    }
-    else if (ok:=FindText(&cardX, &cardY, 438-150000, 291-150000, 438+150000, 291+150000, 0, 0, speed)) {
-        FindText().Click(cardX, cardY, 0)
-        MouseMove 0, 10, 2, "R"
-        Click 2
-        sleep 1000
-        MouseMove 0, 120, 2, "R"
-        Click 2
-        AddToLog("Picked enemy speed")
-        sleep 5000
-    }
-    else if (ok:=FindText(&cardX, &cardY, 438-150000, 291-150000, 438+150000, 291+150000, 0, 0, range)) {
-        FindText().Click(cardX, cardY, 0)
-        MouseMove 0, 10, 2, "R"
-        Click 2
-        sleep 1000
-        MouseMove 0, 120, 2, "R"
-        Click 2
-        AddToLog("Picked range buff")
-        sleep 5000
-    }
-    else if (ok:=FindText(&cardX, &cardY, 438-150000, 291-150000, 438+150000, 291+150000, 0, 0, attack)) {
-        FindText().Click(cardX, cardY, 0)
-        MouseMove 0, 10, 2, "R"
-        Click 2
-        sleep 1000
-        MouseMove 0, 120, 2, "R"
-        Click 2
-        AddToLog("Picked attack buff")
-        sleep 5000
-    }
-    else if (ok:=FindText(&cardX, &cardY, 438-150000, 291-150000, 438+150000, 291+150000, 0, 0, cooldown)) {
-        FindText().Click(cardX, cardY, 0)
-        MouseMove 0, 10, 2, "R"
-        Click 2
-        sleep 1000
-        MouseMove 0, 120, 2, "R"
-        Click 2
-        AddToLog("Picked cooldown")
-        sleep 5000
-    }
-    else if (ok:=FindText(&cardX, &cardY, 438-150000, 291-150000, 438+150000, 291+150000, 0, 0, yen)) {
-        FindText().Click(cardX, cardY, 0)
-        MouseMove 0, 10, 2, "R"
-        Click 2
-        sleep 1000
-        MouseMove 0, 120, 2, "R"
-        Click 2
-        AddToLog("Picked yen buff")
-        sleep 5000
+
+    else if !(candymultiplier = 1) {
+        AddToLog("Detected prioritise candy multiplier disabled")
+        if (ok:=FindText(&cardX, &cardY, 1, 1, 800, 600, 0, 0, arrayOfCardObj[1].card_pic)) {
+            FindText().Click(cardX, cardY, 0)
+            MouseMove 0, 10, 2, "R"
+            Click 2
+            sleep 1000
+            MouseMove 0, 120, 2, "R"
+            Click 2
+            AddToLog("Succesfully picked card")
+            sleep 5000
+        }
+        else if (ok:=FindText(&cardX, &cardY, 1, 1, 800, 600, 0, 0, arrayOfCardObj[2].card_pic)) {
+            FindText().Click(cardX, cardY, 0)
+            MouseMove 0, 10, 2, "R"
+            Click 2
+            sleep 1000
+            MouseMove 0, 120, 2, "R"
+            Click 2
+            AddToLog("Succesfully picked card")
+            sleep 5000
+        }
+        else if (ok:=FindText(&cardX, &cardY, 1, 1, 800, 600, 0, 0, arrayOfCardObj[3].card_pic)) {
+            FindText().Click(cardX, cardY, 0)
+            MouseMove 0, 10, 2, "R"
+            Click 2
+            sleep 1000
+            MouseMove 0, 120, 2, "R"
+            Click 2
+            AddToLog("Succesfully picked card")
+            sleep 5000
+        }
+        else if (ok:=FindText(&cardX, &cardY, 1, 1, 800, 600, 0, 0, arrayOfCardObj[4].card_pic)) {
+            FindText().Click(cardX, cardY, 0)
+            MouseMove 0, 10, 2, "R"
+            Click 2
+            sleep 1000
+            MouseMove 0, 120, 2, "R"
+            Click 2
+            AddToLog("Succesfully picked card")
+            sleep 5000
+        }
+        else if (ok:=FindText(&cardX, &cardY, 1, 1, 800, 600, 0, 0, arrayOfCardObj[5].card_pic)) {
+            FindText().Click(cardX, cardY, 0)
+            MouseMove 0, 10, 2, "R"
+            Click 2
+            sleep 1000
+            MouseMove 0, 120, 2, "R"
+            Click 2
+            AddToLog("Succesfully picked card")
+            sleep 5000
+        }
+        else if (ok:=FindText(&cardX, &cardY, 1, 1, 800, 600, 0, 0, arrayOfCardObj[6].card_pic)) {
+            FindText().Click(cardX, cardY, 0)
+            MouseMove 0, 10, 2, "R"
+            Click 2
+            sleep 1000
+            MouseMove 0, 120, 2, "R"
+            Click 2
+            AddToLog("Succesfully picked card")
+            sleep 5000
+        }
+        else if (ok:=FindText(&cardX, &cardY, 1, 1, 800, 600, 0, 0, arrayOfCardObj[7].card_pic)) {
+            FindText().Click(cardX, cardY, 0)
+            MouseMove 0, 10, 2, "R"
+            Click 2
+            sleep 1000
+            MouseMove 0, 120, 2, "R"
+            Click 2
+            AddToLog("Succesfully picked card")
+            sleep 5000
+        }
+        else if (ok:=FindText(&cardX, &cardY, 1, 1, 800, 600, 0, 0, arrayOfCardObj[8].card_pic)) {
+            FindText().Click(cardX, cardY, 0)
+            MouseMove 0, 10, 2, "R"
+            Click 2
+            sleep 1000
+            MouseMove 0, 120, 2, "R"
+            Click 2
+            AddToLog("Succesfully picked card")
+            sleep 5000
+        }
+        else if (ok:=FindText(&cardX, &cardY, 1, 1, 800, 600, 0, 0, arrayOfCardObj[9].card_pic)) {
+            FindText().Click(cardX, cardY, 0)
+            MouseMove 0, 10, 2, "R"
+            Click 2
+            sleep 1000
+            MouseMove 0, 120, 2, "R"
+            Click 2
+            AddToLog("Succesfully picked card")
+            sleep 5000
+        }
+        else if (ok:=FindText(&cardX, &cardY, 1, 1, 800, 600 0, 0, arrayOfCardObj[10].card_pic)) {
+            FindText().Click(cardX, cardY, 0)
+            MouseMove 0, 10, 2, "R"
+            Click 2
+            sleep 1000
+            MouseMove 0, 120, 2, "R"
+            Click 2
+            AddToLog("Succesfully picked card")
+            sleep 5000
+        }
+        else {
+            AddToLog("Failed to pick a card")
+        }
     }
     else {
         AddToLog("Failed to pick a card")
