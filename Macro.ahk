@@ -98,7 +98,8 @@ F3:: {
     Reload()
 }
 ; Define the rectangle coordinates
-global startX := 100, startY := 500, endX := 700, endY := 200
+global startX := 100, startY := 500, endX := 700, endY := 350
+global startY2 := 200, endY2:= 350
 global step := 50 ; Step size for grid traversal
 global successfulCoordinates := [] ; Array to store successful placements
 global successThreshold := 3 ; Number of successful placements needed
@@ -120,7 +121,7 @@ PlaceUnit(x, y, slot := 1) {
 
 IsPlacementSuccessful() {
     
-    Sleep 3000
+    Sleep 1000
     if (ok:=FindText(&X, &Y, 78, 182, 400, 451, 0, 0, UnitExistence)) {
         AddToLog("placed unit successfully")
         BetterClick(329, 184) ; close upg menu
@@ -135,6 +136,7 @@ TryPlacingUnits() {
 
     x := startX ; Initialize x only once
     y := startY ; Initialize y only once
+    y2 := startY2 ; Initialize y2 only once
 
     ; Iterate through all slots (1 to 6)
     for slotNum in [1, 2, 3, 4, 5, 6] {
@@ -153,17 +155,26 @@ TryPlacingUnits() {
         AddToLog("Starting placements for Slot " slotNum " with " placements " placements.")
         
         placementCount := 0
+        alternatingPlacement := 0
 
         ; Continue placement for the current slot
-        while (placementCount < placements && y >= endY) { ; Rows
+        while (placementCount < placements && y >= endY && y2 <= endY2) { ; Rows
             while (placementCount < placements && x <= endX) { ; Columns
                 if (ok:=FindText(&cardX, &cardY, 391-150000, 249-150000, 391+150000, 249+150000, 0, 0, pick_card)) {
                     cardSelector()
                     AddToLog("Succesfully picked card")
                 }
-                if PlaceUnit(x, y, slotNum) {
+                if (alternatingPlacement == 0) {
+                    if PlaceUnit(x, y2, slotNum) {
+                    placementCount++
+                    successfulCoordinates.Push({ x: x, y: y2 }) ; Track successful placements
+                    }
+                }
+                if (alternatingPlacement == 1) {
+                    if PlaceUnit(x, y, slotNum) {
                     placementCount++
                     successfulCoordinates.Push({ x: x, y: y }) ; Track successful placements
+                    }
                 }
                 BetterClick(348, 391) ; next
                 BetterClick(565, 563) ; move mouse
@@ -176,7 +187,15 @@ TryPlacingUnits() {
             }
             if x > endX {
                 x := startX ; Reset x for the next row
-                y -= (step + 25) ; Move to the next row
+                if (Mod(alternatingPlacement, 2) == 0) {
+                    y2 += (step + 25) ; Move to the next row, upwards
+                    alternatingPlacement += 1
+                }
+
+                else {
+                    y -= (step + 25) ; Move to the next row, downwards
+                    alternatingPlacement -= 1
+                }
             }
             Reconnect()
         }
@@ -411,7 +430,7 @@ AntiCaptcha() {
 
         ; Clean up the captcha string
         captcha := StrReplace(ocrResult.Text, " ")  ; Remove spaces
-        if (StrLen(captcha) <= 1 || RegExMatch(captcha, "[A-Z0-9]")) {
+        if (StrLen(captcha) <= 1 || RegExMatch(captcha, "[A-Z]")) {
             AddToLog("invalid captcha retrying")
             return RetryCaptcha()  ; Retry if string length <= 1 or contains uppercase/numbers
         }
